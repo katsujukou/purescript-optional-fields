@@ -1,0 +1,24 @@
+package:
+  name: "optional-fields"
+  publish:
+    version: 0.1.0
+    license: MIT
+  dependencies:
+    - functions
+    - maybe
+    - partial
+    - prelude
+    - type-equality
+    - unsafe-coerce
+  test:
+    main: Test.Main
+    dependencies:
+      - aff
+      - console
+      - effect
+      - spec
+
+workspace:
+  extra_packages: {}
+  package_set:
+    registry: 46.2.0
