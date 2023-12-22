@@ -19,6 +19,4 @@ package:
       - spec
 
 workspace:
-  extra_packages: {}
-  package_set:
-    registry: 46.2.0
+  lock: true
