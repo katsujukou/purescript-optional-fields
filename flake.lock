@@ -59,11 +59,11 @@
         "slimlock": "slimlock"
       },
       "locked": {
-        "lastModified": 1702064585,
-        "narHash": "sha256-Ha3NICzmfzzaSNzvWCIfm1f+ykn4SD9zF85Dl3jpOKM=",
+        "lastModified": 1703097182,
+        "narHash": "sha256-L7UeQMdZWKEOUpRveXhvq2aF18yF5KgyCUYZYxvCZPI=",
         "owner": "thomashoneyman",
         "repo": "purescript-overlay",
-        "rev": "439109e984099b0159c232ee64c36fb4ecc14694",
+        "rev": "aa82efe06d9d32cee5bda7a44d9cf6cdc4c6fb60",
         "type": "github"
       },
       "original": {
