@@ -27,7 +27,7 @@ optional :: forall @t a b. Optional (Root ()) t a b => a -> b
 optional = optionalWithContext (Proxy @(Root () t))
 
 class Optional :: (Type -> Context) -> Type -> Type -> Type -> Constraint
-class Optional ctx t a b | ctx a -> t b where
+class Optional ctx t a b | ctx t a -> b where
   optionalWithContext :: Proxy (ctx t) -> a -> b
 
 instance optionalRecord ::
@@ -39,15 +39,28 @@ instance optionalRecord ::
   where
   optionalWithContext p ri = Just (optionalRecordProps (Proxy @l) p ri)
 
-else instance optionalMaybeRecord ::
-  ( Optional ctx { | r } { | ri } ro
-  ) =>
-  Optional ctx { | r } (Maybe { | ri }) ro
-  where
-  optionalWithContext _ Nothing = unsafeCoerce Nothing
-  optionalWithContext p (Just ri) = optionalWithContext p ri
+-- else instance optionalMaybeRecord ::
+--   ( Optional ctx { | r } { | ri } ro
+--   ) =>
+--   Optional ctx { | r } (Maybe { | ri }) ro
+--   where
+--   optionalWithContext _ Nothing = unsafeCoerce Nothing
+--   optionalWithContext p (Just ri) = optionalWithContext p ri
 
 else instance optionalMaybe ::
+  ( Optional ctx a a b
+  ) =>
+  Optional ctx a (Maybe a) b where
+  optionalWithContext _ Nothing = unsafeCoerce Nothing
+  optionalWithContext p (Just a) = optionalWithContext p a
+
+else instance optionalMaybeFlattenLeft ::
+  ( Optional ctx a a b
+  ) =>
+  Optional ctx (Maybe a) a b where
+  optionalWithContext _ a = unsafeCoerce (Just a)
+
+else instance optionalMaybeFlattenRight ::
   ( Optional ctx a a b
   ) =>
   Optional ctx a (Maybe a) b where
