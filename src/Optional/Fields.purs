@@ -2,14 +2,11 @@ module Optional.Fields
   ( optional
   , class Optional
   , class OptionalRecordProps
-  , class GetTypeWithDefault
   , class DropIfExists
   , class DropIfExistsRowList
   , optionalWithContext
   , optionalRecordProps
   ) where
-
-import Prelude
 
 import Data.Maybe (Maybe(..))
 import Data.Symbol (class IsSymbol, reflectSymbol)
@@ -30,7 +27,7 @@ optional :: forall @t a b. Optional (Root ()) t a b => a -> b
 optional = optionalWithContext (Proxy @(Root () t))
 
 class Optional :: (Type -> Context) -> Type -> Type -> Type -> Constraint
-class Optional ctx t a b | ctx t a -> b where
+class Optional ctx t a b | ctx a -> t b where
   optionalWithContext :: Proxy (ctx t) -> a -> b
 
 instance optionalRecord ::
@@ -42,8 +39,20 @@ instance optionalRecord ::
   where
   optionalWithContext p ri = Just (optionalRecordProps (Proxy @l) p ri)
 
-else instance optionalMaybe :: Optional ctx a (Maybe a) (Maybe a) where
-  optionalWithContext _ = identity
+else instance optionalMaybeRecord ::
+  ( Optional ctx { | r } { | ri } ro
+  ) =>
+  Optional ctx { | r } (Maybe { | ri }) ro
+  where
+  optionalWithContext _ Nothing = unsafeCoerce Nothing
+  optionalWithContext p (Just ri) = optionalWithContext p ri
+
+else instance optionalMaybe ::
+  ( Optional ctx a a b
+  ) =>
+  Optional ctx a (Maybe a) b where
+  optionalWithContext _ Nothing = unsafeCoerce Nothing
+  optionalWithContext p (Just a) = optionalWithContext p a
 
 else instance optionalDefault :: Optional ctx a a (Maybe a) where
   optionalWithContext _ = Just
@@ -70,7 +79,6 @@ else instance optionalRecordPropsCons ::
   ( RowToList ri li
   , Row.Cons prop typ rest r
   , RowToList rest tail
-  -- , GetTypeWithDefault typ prop li typ'
   , DropIfExists ri prop irest
   , RowToList irest litail
   , OptionalRecordProps ctx rest tail litail irest orest
@@ -84,10 +92,10 @@ else instance optionalRecordPropsCons ::
     let
       propProxy = Proxy @prop
       prop = reflectSymbol propProxy
-      (a :: Maybe typ) = unsafeGet prop ri
+      (a :: _ typ) = unsafeGet prop ri
       rest = optionalRecordProps (Proxy @tail) (Proxy @(ctx { | rest })) ((unsafeCoerce ri) :: Record irest)
     in
-      unsafeSet prop (optionalWithContext (Proxy @(AtProp ctx prop r (Maybe typ))) a) rest
+      unsafeSet prop (optionalWithContext (Proxy @(AtProp ctx prop r typ)) a) rest
 
 else instance optionalRecordPropsUnexpected ::
   ( RowToList row (RL.Cons _3 (Record r') _2)
@@ -137,8 +145,3 @@ else instance dropIfExistsRowListLoop ::
   ) =>
   DropIfExistsRowList r (RL.Cons _1 _2 tail) label ro
 
-type T a =
-  { foo :: Int
-  , bar :: String
-  , baz :: { quz :: a, qux :: Array Boolean }
-  }
