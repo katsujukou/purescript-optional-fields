@@ -3,10 +3,7 @@ workspace:
     optional-fields:
       path: ./
       dependencies:
-        - functions
         - maybe
-        - partial
-        - prelude
         - record
         - type-equality
         - unsafe-coerce
@@ -14,6 +11,7 @@ workspace:
         - aff
         - console
         - effect
+        - prelude
         - spec
       build_plan:
         - aff

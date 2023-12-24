@@ -4,10 +4,7 @@ package:
     version: 0.1.0
     license: MIT
   dependencies:
-    - functions
     - maybe
-    - partial
-    - prelude
     - record
     - type-equality
     - unsafe-coerce
@@ -17,6 +14,7 @@ package:
       - aff
       - console
       - effect
+      - prelude
       - spec
 
 workspace:
