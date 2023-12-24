@@ -20,7 +20,7 @@ import Prim.RowList as RL
 import Prim.TypeError (class Fail)
 import Record as Record
 import Record.Optional.Fields.Errors (class RenderError)
-import Record.Optional.Fields.Types (AtProp, Context, Root, TypeError, UnexpectedType, UnsupportedProp)
+import Record.Optional.Fields.Types (class SetContextRow, AtProp, Context, Root, TypeError, UnexpectedType, UnsupportedProp)
 import Record.Unsafe (unsafeSet)
 import Type.Equality (class TypeEquals, from)
 import Type.Proxy (Proxy(..))
@@ -36,11 +36,12 @@ class Optional ctx t a b | ctx t a -> b where
 instance optionalRecord ::
   ( RowToList r l
   , RowToList ri li
-  , OptionalRecordProps ctx r l li ri ro
+  , SetContextRow r ctx ctx'
+  , OptionalRecordProps ctx' r l li ri ro
   ) =>
   Optional ctx { | r } { | ri } (Maybe { | ro })
   where
-  optionalWithContext p ri = Just (optionalRecordProps (Proxy @l) p ri)
+  optionalWithContext _ ri = Just (optionalRecordProps (Proxy @l) (Proxy @(ctx' { | r })) ri)
 
 else instance optionalFlattenRight ::
   ( Optional ctx r a b
@@ -107,8 +108,7 @@ else instance optionalRecordPropsCons ::
       unsafeSet prop a rest
 
 else instance optionalRecordPropsUnexpected ::
-  ( RowToList row (RL.Cons _3 (Record r') _2)
-  , RenderError (TypeError (ctx row { | r }) (UnsupportedProp label r')) doc
+  ( RenderError (TypeError (ctx row { | r }) (UnsupportedProp label row)) doc
   , Fail doc
   ) =>
   OptionalRecordProps (ctx row) r RL.Nil (RL.Cons label typ _1) ri ro
