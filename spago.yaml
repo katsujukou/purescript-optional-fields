@@ -1,5 +1,5 @@
 package:
-  name: "record-optional-fields"
+  name: "record-ptional-fields"
   publish:
     version: 0.1.0
     location:
