@@ -10,8 +10,6 @@ module Record.Optional.Fields
   , getWithDefault
   ) where
 
-import Prelude
-
 import Data.Maybe (Maybe(..))
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Partial.Unsafe (unsafeCrashWith)
@@ -134,7 +132,7 @@ else instance getTypeWithDefaultConsHead ::
   ) =>
   GetTypeWithDefault ctx t prop row (RL.Cons prop typ tail) out
   where
-  getWithDefault _ _ _ prop = Record.get prop >>> optionalWithContext (Proxy @(AtProp ctx prop row t))
+  getWithDefault _ _ _ prop ri = optionalWithContext (Proxy @(AtProp ctx prop row t)) (Record.get prop ri)
 
 else instance getTypeWithDefaulConsTail ::
   ( Row.Cons _1 _2 rest row
