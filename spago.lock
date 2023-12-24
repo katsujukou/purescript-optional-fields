@@ -3,11 +3,12 @@ workspace:
     record-ptional-fields:
       path: ./
       dependencies:
-        - maybe
-        - prelude
-        - record
-        - type-equality
-        - unsafe-coerce
+        - maybe: ">=6.0.0 <7.0.0"
+        - partial
+        - prelude: ">=6.0.1 <7.0.0"
+        - record: ">=4.0.0 <5.0.0"
+        - type-equality: ">=4.0.1 <5.0.0"
+        - unsafe-coerce: ">=6.0.0 <7.0.0"
       test_dependencies:
         - aff
         - console
