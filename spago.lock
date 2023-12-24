@@ -1,9 +1,10 @@
 workspace:
   packages:
-    optional-fields:
+    record-ptional-fields:
       path: ./
       dependencies:
         - maybe
+        - prelude
         - record
         - type-equality
         - unsafe-coerce
@@ -11,7 +12,6 @@ workspace:
         - aff
         - console
         - effect
-        - prelude
         - spec
       build_plan:
         - aff
