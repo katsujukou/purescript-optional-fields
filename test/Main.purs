@@ -4,10 +4,10 @@ import Prelude
 
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Test.Optional.Fields as Optional.Fields
+import Test.Record.Optional.Fields as Record.Optional.Fields
 import Test.Spec.Reporter (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [ consoleReporter ] do
-  Optional.Fields.spec
+  Record.Optional.Fields.spec
