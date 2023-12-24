@@ -1,23 +1,28 @@
-module Optional.Fields
+module Record.Optional.Fields
   ( optional
   , class Optional
+  , class GetTypeWithDefault
   , class OptionalRecordProps
   , class DropIfExists
   , class DropIfExistsRowList
   , optionalWithContext
   , optionalRecordProps
+  , getWithDefault
   ) where
+
+import Prelude
 
 import Data.Maybe (Maybe(..))
 import Data.Symbol (class IsSymbol, reflectSymbol)
-import Optional.Fields.Errors (class RenderError)
-import Optional.Fields.Types (AtProp, Context, Root, TypeError, UnexpectedType, UnsupportedProp)
-import Optional.Fields.Unsafe (unsafeGet)
 import Partial.Unsafe (unsafeCrashWith)
+import Prim.Row (class Lacks)
 import Prim.Row as Row
 import Prim.RowList (class RowToList, RowList)
 import Prim.RowList as RL
 import Prim.TypeError (class Fail)
+import Record as Record
+import Record.Optional.Fields.Errors (class RenderError)
+import Record.Optional.Fields.Types (AtProp, Context, Root, TypeError, UnexpectedType, UnsupportedProp)
 import Record.Unsafe (unsafeSet)
 import Type.Equality (class TypeEquals, from)
 import Type.Proxy (Proxy(..))
@@ -39,33 +44,25 @@ instance optionalRecord ::
   where
   optionalWithContext p ri = Just (optionalRecordProps (Proxy @l) p ri)
 
--- else instance optionalMaybeRecord ::
---   ( Optional ctx { | r } { | ri } ro
---   ) =>
---   Optional ctx { | r } (Maybe { | ri }) ro
---   where
---   optionalWithContext _ Nothing = unsafeCoerce Nothing
---   optionalWithContext p (Just ri) = optionalWithContext p ri
-
-else instance optionalMaybe ::
-  ( Optional ctx a a b
+else instance optionalFlattenRight ::
+  ( Optional ctx r a b
   ) =>
-  Optional ctx a (Maybe a) b where
+  Optional ctx r (Maybe a) b where
   optionalWithContext _ Nothing = unsafeCoerce Nothing
   optionalWithContext p (Just a) = optionalWithContext p a
 
-else instance optionalMaybeFlattenLeft ::
-  ( Optional ctx a a b
+else instance optionalFlattenLeft ::
+  ( Optional ctx r a b
   ) =>
-  Optional ctx (Maybe a) a b where
-  optionalWithContext _ a = unsafeCoerce (Just a)
+  Optional ctx (Maybe r) a b where
+  optionalWithContext _ a = optionalWithContext (Proxy @(ctx r)) a
 
-else instance optionalMaybeFlattenRight ::
-  ( Optional ctx a a b
+else instance optionalMaybeBoth ::
+  ( Optional ctx r a b
   ) =>
-  Optional ctx a (Maybe a) b where
+  Optional ctx (Maybe r) (Maybe a) b where
   optionalWithContext _ Nothing = unsafeCoerce Nothing
-  optionalWithContext p (Just a) = optionalWithContext p a
+  optionalWithContext _ (Just a) = optionalWithContext (Proxy @(ctx r)) a
 
 else instance optionalDefault :: Optional ctx a a (Maybe a) where
   optionalWithContext _ = Just
@@ -95,8 +92,9 @@ else instance optionalRecordPropsCons ::
   , DropIfExists ri prop irest
   , RowToList irest litail
   , OptionalRecordProps ctx rest tail litail irest orest
-  , Optional (AtProp ctx prop r) typ (Maybe typ) op
-  , Row.Cons prop op orest ro
+  , GetTypeWithDefault ctx (Maybe typ) prop ri li typ'
+  -- , TypeEquals typ' (Mayb:re typ)
+  , Row.Cons prop typ' orest ro
   , IsSymbol prop
   ) =>
   OptionalRecordProps ctx r (RL.Cons prop typ tail) li ri ro
@@ -105,10 +103,10 @@ else instance optionalRecordPropsCons ::
     let
       propProxy = Proxy @prop
       prop = reflectSymbol propProxy
-      (a :: _ typ) = unsafeGet prop ri
+      a = getWithDefault (Proxy @(ctx (Maybe typ))) (Proxy @li) ((unsafeCoerce Nothing) :: Maybe typ) (Proxy @prop) ri
       rest = optionalRecordProps (Proxy @tail) (Proxy @(ctx { | rest })) ((unsafeCoerce ri) :: Record irest)
     in
-      unsafeSet prop (optionalWithContext (Proxy @(AtProp ctx prop r typ)) a) rest
+      unsafeSet prop a rest
 
 else instance optionalRecordPropsUnexpected ::
   ( RowToList row (RL.Cons _3 (Record r') _2)
@@ -117,22 +115,41 @@ else instance optionalRecordPropsUnexpected ::
   ) =>
   OptionalRecordProps (ctx row) r RL.Nil (RL.Cons label typ _1) ri ro
 
--- | Auxiliary class working as typelevel function 
--- | which searches the given label `p` in the given `RowList` `l`.
--- | When the RowList does not contain that label, this type-level
--- | function returns the given default type `d`.
-class GetTypeWithDefault :: Type -> Symbol -> RowList Type -> Type -> Constraint
-class GetTypeWithDefault d p l t | d p l -> t
+class GetTypeWithDefault :: (Type -> Context) -> Type -> Symbol -> Row Type -> RowList Type -> Type -> Constraint
+class GetTypeWithDefault ctx t prop row rl out | ctx t prop row rl -> out where
+  getWithDefault :: Proxy (ctx t) -> Proxy rl -> t -> Proxy prop -> { | row } -> out
 
-instance getTypeWithDefaultNil :: GetTypeWithDefault d p RL.Nil d
+instance getTypeWithDefaultNil ::
+  ( TypeEquals row ()
+  , Optional ctx t t out
+  ) =>
+  GetTypeWithDefault ctx t prop row RL.Nil out
+  where
+  getWithDefault _ _ def _ _ = optionalWithContext (Proxy @(ctx t)) def
 
-else instance getTypeWithDefaulConsHead ::
-  GetTypeWithDefault _1 p (RL.Cons p t _2) t
+else instance getTypeWithDefaultConsHead ::
+  ( Row.Cons prop typ rest row
+  , IsSymbol prop
+  , Optional (AtProp ctx prop row) t typ out
+  ) =>
+  GetTypeWithDefault ctx t prop row (RL.Cons prop typ tail) out
+  where
+  getWithDefault _ _ _ prop = Record.get prop >>> optionalWithContext (Proxy @(AtProp ctx prop row t))
 
 else instance getTypeWithDefaulConsTail ::
-  ( GetTypeWithDefault t p cdr r
+  ( Row.Cons _1 _2 rest row
+  , RowToList rest cdr
+  , GetTypeWithDefault ctx t prop rest cdr out
+  , IsSymbol _1
+  , Lacks _1 rest
   ) =>
-  GetTypeWithDefault t p (RL.Cons _1 _2 cdr) r
+  GetTypeWithDefault ctx t prop row (RL.Cons _1 _2 cdr) out
+  where
+  getWithDefault pctx _ def p ri =
+    let
+      rest = Record.delete (Proxy @_1) ri
+    in
+      getWithDefault pctx (Proxy @cdr) def p rest
 
 class DropIfExists :: Row Type -> Symbol -> Row Type -> Constraint
 class DropIfExists ri label ro | ri label -> ro
@@ -157,4 +174,3 @@ else instance dropIfExistsRowListLoop ::
   ( DropIfExistsRowList r tail label ro
   ) =>
   DropIfExistsRowList r (RL.Cons _1 _2 tail) label ro
-
