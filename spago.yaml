@@ -8,6 +8,7 @@ package:
     - maybe
     - partial
     - prelude
+    - record
     - type-equality
     - unsafe-coerce
   test:

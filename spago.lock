@@ -7,6 +7,7 @@ workspace:
         - maybe
         - partial
         - prelude
+        - record
         - type-equality
         - unsafe-coerce
       test_dependencies:
@@ -57,6 +58,7 @@ workspace:
         - pipes
         - prelude
         - profunctor
+        - record
         - refs
         - safe-coerce
         - spec
@@ -520,6 +522,14 @@ packages:
       - newtype
       - prelude
       - tuples
+  record:
+    type: registry
+    version: 4.0.0
+    integrity: sha256-Za5U85bTRJEfGK5Sk4hM41oXy84YQI0I8TL3WUn1Qzg=
+    dependencies:
+      - functions
+      - prelude
+      - unsafe-coerce
   refs:
     type: registry
     version: 6.0.0
