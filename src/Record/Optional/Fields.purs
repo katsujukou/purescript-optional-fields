@@ -1,6 +1,8 @@
 module Record.Optional.Fields
   ( optional
+  -- , optional'
   , class Optional
+  , class OptionalWithContext
   , class GetTypeWithDefault
   , class OptionalRecordProps
   , class DropIfExists
@@ -26,11 +28,17 @@ import Type.Equality (class TypeEquals, from)
 import Type.Proxy (Proxy(..))
 import Unsafe.Coerce (unsafeCoerce)
 
-optional :: forall @t a b. Optional (Root ()) t a b => a -> b
-optional = optionalWithContext (Proxy @(Root () t))
+class Optional (@t :: Type) a b | t a -> b where
+  optional :: a -> b
 
-class Optional :: (Type -> Context) -> Type -> Type -> Type -> Constraint
-class Optional ctx t a b | ctx t a -> b where
+instance optionalDefault ::
+  ( OptionalWithContext (Root ()) t a b
+  ) =>
+  Optional t a b where
+    optional = optionalWithContext (Proxy@(Root () t))  
+
+class OptionalWithContext :: (Type -> Context) -> Type -> Type -> Type -> Constraint
+class OptionalWithContext ctx t a b | ctx t a -> b where
   optionalWithContext :: Proxy (ctx t) -> a -> b
 
 instance optionalRecord ::
@@ -39,38 +47,38 @@ instance optionalRecord ::
   , SetContextRow r ctx ctx'
   , OptionalRecordProps ctx' r l li ri ro
   ) =>
-  Optional ctx { | r } { | ri } (Maybe { | ro })
+  OptionalWithContext ctx { | r } { | ri } (Maybe { | ro })
   where
   optionalWithContext _ ri = Just (optionalRecordProps (Proxy @l) (Proxy @(ctx' { | r })) ri)
 
 else instance optionalFlattenRight ::
-  ( Optional ctx r a b
+  ( OptionalWithContext ctx r a b
   ) =>
-  Optional ctx r (Maybe a) b where
+  OptionalWithContext ctx r (Maybe a) b where
   optionalWithContext _ Nothing = unsafeCoerce Nothing
   optionalWithContext p (Just a) = optionalWithContext p a
 
 else instance optionalFlattenLeft ::
-  ( Optional ctx r a b
+  ( OptionalWithContext ctx r a b
   ) =>
-  Optional ctx (Maybe r) a b where
+  OptionalWithContext ctx (Maybe r) a b where
   optionalWithContext _ a = optionalWithContext (Proxy @(ctx r)) a
 
 else instance optionalMaybeBoth ::
-  ( Optional ctx r a b
+  ( OptionalWithContext ctx r a b
   ) =>
-  Optional ctx (Maybe r) (Maybe a) b where
+  OptionalWithContext ctx (Maybe r) (Maybe a) b where
   optionalWithContext _ Nothing = unsafeCoerce Nothing
   optionalWithContext _ (Just a) = optionalWithContext (Proxy @(ctx r)) a
 
-else instance optionalDefault :: Optional ctx a a (Maybe a) where
+else instance optionalWithContextDefault :: OptionalWithContext ctx a a (Maybe a) where
   optionalWithContext _ = Just
 
 else instance optionalIncompatible ::
   ( RenderError (TypeError (ctx a) (UnexpectedType a b)) error
   , Fail error
   ) =>
-  Optional ctx a b err where
+  OptionalWithContext ctx a b err where
   optionalWithContext _ _ = unsafeCrashWith "optional incompatible"
 
 class OptionalRecordProps :: (Type -> Context) -> Row Type -> RowList Type -> RowList Type -> Row Type -> Row Type -> Constraint
@@ -119,7 +127,7 @@ class GetTypeWithDefault ctx t prop row rl out | ctx t prop row rl -> out where
 
 instance getTypeWithDefaultNil ::
   ( TypeEquals row ()
-  , Optional ctx t t out
+  , OptionalWithContext ctx t t out
   ) =>
   GetTypeWithDefault ctx t prop row RL.Nil out
   where
@@ -128,7 +136,7 @@ instance getTypeWithDefaultNil ::
 else instance getTypeWithDefaultConsHead ::
   ( Row.Cons prop typ rest row
   , IsSymbol prop
-  , Optional (AtProp ctx prop row) t typ out
+  , OptionalWithContext (AtProp ctx prop row) t typ out
   ) =>
   GetTypeWithDefault ctx t prop row (RL.Cons prop typ tail) out
   where
