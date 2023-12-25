@@ -3,6 +3,7 @@ workspace:
     record-ptional-fields:
       path: ./
       dependencies:
+        - foreign
         - maybe: ">=6.0.0 <7.0.0"
         - partial: ">=4.0.0 <5.0.0"
         - prelude: ">=6.0.1 <7.0.0"
@@ -34,6 +35,7 @@ workspace:
         - exceptions
         - exists
         - foldable-traversable
+        - foreign
         - fork
         - free
         - functions
@@ -284,6 +286,20 @@ packages:
       - orders
       - prelude
       - tuples
+  foreign:
+    type: registry
+    version: 7.0.0
+    integrity: sha256-1ORiqoS3HW+qfwSZAppHPWy4/6AQysxZ2t29jcdUMNA=
+    dependencies:
+      - either
+      - functions
+      - identity
+      - integers
+      - lists
+      - maybe
+      - prelude
+      - strings
+      - transformers
   fork:
     type: registry
     version: 6.0.0
