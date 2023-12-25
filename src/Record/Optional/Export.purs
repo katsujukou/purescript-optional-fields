@@ -70,5 +70,3 @@ else instance exportRecordPropsCons ::
 foreign import jsNull :: Foreign
 
 foreign import isNull :: Foreign -> Boolean
-
-foreign import unsafeLog :: forall a. String -> a -> a
