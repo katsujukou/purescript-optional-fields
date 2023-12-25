@@ -2,7 +2,7 @@
 
 Type-safe manipulation of optional fields for PureScript record types.
 
-[![CI](https://github.com/katsujukou/purescript-optional-fields/actions/workflows/ci.yml/badge.svg)](https://github.com/katsujukou/purescript-optional-fields/actions/workflows/ci.yml)
+[![purs - v0.15.13](https://img.shields.io/badge/purs-v0.15.13-blue?logo=purescript)](https://github.com/purescript/purescript/releases/tag/v0.15.13) [![CI](https://github.com/katsujukou/purescript-optional-fields/actions/workflows/ci.yml/badge.svg)](https://github.com/katsujukou/purescript-optional-fields/actions/workflows/ci.yml)
 
 ## What's this?
 
