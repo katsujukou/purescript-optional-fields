@@ -1,6 +1,6 @@
 module Record.Optional.Fields
   ( optional
-  -- , optional'
+  , optional'
   , class Optional
   , class OptionalWithContext
   , class GetTypeWithDefault
@@ -28,14 +28,20 @@ import Type.Equality (class TypeEquals, from)
 import Type.Proxy (Proxy(..))
 import Unsafe.Coerce (unsafeCoerce)
 
-class Optional (@t :: Type) a b | t a -> b where
-  optional :: a -> b
+-- In the meantime, purs-tidy v0.10.0 will claim unexpected '@'
+-- when typeclass declaration contains visible type variable.
+-- that is why we define optional as public interface. 
+optional :: forall @t a b. Optional t a b => a -> b
+optional = optional' (Proxy @t)
+
+class Optional (t :: Type) a b | t a -> b where
+  optional' :: Proxy t -> a -> b
 
 instance optionalDefault ::
   ( OptionalWithContext (Root ()) t a b
   ) =>
   Optional t a b where
-    optional = optionalWithContext (Proxy@(Root () t))  
+  optional' _ = optionalWithContext (Proxy @(Root () t))
 
 class OptionalWithContext :: (Type -> Context) -> Type -> Type -> Type -> Constraint
 class OptionalWithContext ctx t a b | ctx t a -> b where
