@@ -4,6 +4,7 @@ workspace:
       path: ./
       dependencies:
         - foreign
+        - foreign-object
         - maybe: ">=6.0.0 <7.0.0"
         - partial: ">=4.0.0 <5.0.0"
         - prelude: ">=6.0.1 <7.0.0"
@@ -36,6 +37,7 @@ workspace:
         - exists
         - foldable-traversable
         - foreign
+        - foreign-object
         - fork
         - free
         - functions
@@ -69,6 +71,7 @@ workspace:
         - transformers
         - tuples
         - type-equality
+        - typelevel-prelude
         - unfoldable
         - unsafe-coerce
   extra_packages: {}
@@ -300,6 +303,23 @@ packages:
       - prelude
       - strings
       - transformers
+  foreign-object:
+    type: registry
+    version: 4.1.0
+    integrity: sha256-q24okj6mT+yGHYQ+ei/pYPj5ih6sTbu7eDv/WU56JVo=
+    dependencies:
+      - arrays
+      - foldable-traversable
+      - functions
+      - gen
+      - lists
+      - maybe
+      - prelude
+      - st
+      - tailrec
+      - tuples
+      - typelevel-prelude
+      - unfoldable
   fork:
     type: registry
     version: 6.0.0
@@ -666,6 +686,13 @@ packages:
     version: 4.0.1
     integrity: sha256-Hs9D6Y71zFi/b+qu5NSbuadUQXe5iv5iWx0226vOHUw=
     dependencies: []
+  typelevel-prelude:
+    type: registry
+    version: 7.0.0
+    integrity: sha256-uFF2ph+vHcQpfPuPf2a3ukJDFmLhApmkpTMviHIWgJM=
+    dependencies:
+      - prelude
+      - type-equality
   unfoldable:
     type: registry
     version: 6.0.0

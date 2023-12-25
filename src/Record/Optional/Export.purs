@@ -5,6 +5,7 @@ import Prelude
 import Data.Maybe (Maybe, maybe)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Foreign (Foreign)
+import Foreign.Object (Object)
 import Prim.Row as Row
 import Prim.RowList (class RowToList, RowList)
 import Prim.RowList as RL
@@ -15,6 +16,9 @@ import Unsafe.Coerce (unsafeCoerce)
 
 class Export a where
   export :: a -> Foreign
+
+instance exportForeign :: Export Foreign where
+  export = identity
 
 instance exportInt :: Export Int where
   export = unsafeCoerce
@@ -33,6 +37,9 @@ instance exportArray :: Export a => Export (Array a) where
 
 instance exportMaybe :: Export a => Export (Maybe a) where
   export = maybe jsNull export
+
+instance Export a => Export (Object a) where
+  export = unsafeCoerce <<< map export
 
 instance exportRecord ::
   ( RowToList r rl
@@ -69,4 +76,8 @@ else instance exportRecordPropsCons ::
 
 foreign import jsNull :: Foreign
 
+foreign import jsUndefined :: Foreign
+
 foreign import isNull :: Foreign -> Boolean
+
+foreign import isUndefined :: Foreign -> Boolean
