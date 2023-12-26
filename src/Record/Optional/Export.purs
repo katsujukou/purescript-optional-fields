@@ -2,6 +2,7 @@ module Record.Optional.Export where
 
 import Prelude
 
+import Data.Either (Either, either)
 import Data.Maybe (Maybe, maybe)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Foreign (Foreign)
@@ -37,6 +38,9 @@ instance exportArray :: Export a => Export (Array a) where
 
 instance exportMaybe :: Export a => Export (Maybe a) where
   export = maybe jsNull export
+
+instance exportEither :: (Export a, Export b) => Export (Either a b) where
+  export = either export export
 
 instance Export a => Export (Object a) where
   export = unsafeCoerce <<< map export
